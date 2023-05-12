@@ -1,0 +1,65 @@
+service: aws-node-http-api-project
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:GetItem
+            - dynamodb:scan
+          Resource:
+            - arn:aws:dynamodb:us-east-1:139199112380:table/ItemTable
+
+functions:
+  hello:
+    handler: src/index.handler
+    events:
+      - httpApi:
+          path: /
+          method: get
+  insertItem:
+    handler: src/insert-item.handler
+    events:
+      - httpApi:
+          path: /item
+          method: post
+  fetchItems:
+    handler: src/fetch-items.handler
+    events:
+      - httpApi:
+          path: /items
+          method: get
+  fetchItem:
+    handler: src/fetch-item.handler
+    events:
+      - httpApi:
+          path: /items/{id}
+          method: get
+  updateItem:
+    handler: src/update-item.handler
+    events:
+      - httpApi:
+          path: /items/{id}
+          method: put
+          headers: ''
+
+resources:
+  Resources:
+    ItemTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ItemTable
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
